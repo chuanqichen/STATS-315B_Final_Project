@@ -5,7 +5,7 @@ The goal of this task is to learn how to recognize faces. We have a set of pictu
 
 ## Dataset
 Data: Faces Directory   
-Summary: This data consists of 640 black and white face images of people taken with varying pose (straight, left, right, up), expression (neutral, happy, sad, angry), eyes (wearing sunglasses or not), and size.     
+Summary: This data consists of 640 black and white face images of 20 people taken with varying pose (straight, left, right, up), expression (neutral, happy, sad, angry), eyes (wearing sunglasses or not), and size, 32 images for each person.      
 Background: .PGM format specification  
 http://netpbm.sourceforge.net/doc/pgm.html
 ```
@@ -13,28 +13,27 @@ wget --recursive --no-parent http://www.cs.cmu.edu/afs/cs.cmu.edu/project/theo-8
 find . -type f -name 'index.html*' -delete
 ```
 ```
-Data Set Information:
-
+Data Format
 Each image can be characterized by the pose, expression, eyes, and size. There are 32 images for each person capturing every combination of features.
 To view the images, you can use the program xv.
 The image data can be found in /faces. This directory contains 20 subdirectories, one for each person, named by userid. Each of these directories contains several different face images of the same person.
+
 You will be interested in the images with the following naming convention:
-.pgm
-is the user id of the person in the image, and this field has 20 values: 
-an2i, at33, boland, bpm, ch4f, cheyer, choon, danieln, glickman, karyadi, kawamura, 
-kk49, megak, mitchell, night, phoebe, saavik, steffi, sz24, and tammo.
-is the head position of the person, and this field has 4 values: straight, left, right, up.
-is the facial expression of the person, and this field has 4 values: neutral, happy, sad, angry.
-is the eye state of the person, and this field has 2 values: open, sunglasses.
-is the scale of the image, and this field has 3 values: 1, 2, and 4. 
-1 indicates a full-resolution image (128 columns by 120 rows); 
-2 indicates a half-resolution image (64 by 60); 
-4 indicates a quarter-resolution image (32 by 30).
+
+<userid> <pose> <expression> <eyes> <scale>.pgm
+<userid> is the user id of the person in the image, and this field has 20 values: an2i, at33, boland, bpm, 
+ch4f, cheyer, choon, danieln, glickman, karyadi, kawamura, kk49, megak, mitchell, night, phoebe, saavik, steffi, sz24, and tammo.
+<pose> is the head position of the person, and this field has 4 values: straight, left, right, up.
+<expression> is the facial expression of the person, and this field has 4 values: neutral, happy, sad, angry.
+<eyes> is the eye state of the person, and this field has 2 values: open, sunglasses.
+<scale> is the scale of the image, and this field has 3 values: 1, 2, and 4. 1 indicates a full-resolution image (128 columns by 120 rows); 
+2 indicates a half-resolution image (64 by 60); 4 indicates a quarter-resolution image (32 by 30).
 If you've been looking closely in the image directories, you may notice that some images have a .bad suffix rather than the .pgm suffix. 
 As it turns out, 16 of the 640 images taken have glitches due to problems with the camera setup; these are the .bad images. 
 Some people had more glitches than others, but everyone who got ``faced'' should have at least 28 good face images 
 (out of the 32 variations possible, discounting scale).
 ```
+
 
 ## Methods
 dimensionality reduction, PCA, SVM, neural networks
