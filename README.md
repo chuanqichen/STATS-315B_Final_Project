@@ -5,6 +5,7 @@ The goal of this task is to learn how to recognize faces. We have a set of pictu
 
 ## Dataset
 Data: Faces Directory   
+Summary: This data consists of 640 black and white face images of people taken with varying pose (straight, left, right, up), expression (neutral, happy, sad, angry), eyes (wearing sunglasses or not), and size.     
 Background: .PGM format specification  
 http://netpbm.sourceforge.net/doc/pgm.html
 ```
