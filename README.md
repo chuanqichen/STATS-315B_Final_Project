@@ -45,3 +45,7 @@ dimensionality reduction, PCA, SVM, neural networks
 - A final report (20% of the final grade), due on June 12 (Mon) by 11:59am (yes, am).
 
 [Final Project](https://stanford-stats315b.github.io/spring2023/projects/)
+
+## Links
+[Yale Face Databases](https://libguides.princeton.edu/facedatabases)
+
