@@ -8,6 +8,8 @@ Data: Faces Directory
 Summary: This data consists of 640 black and white face images of 20 people taken with varying pose (straight, left, right, up), expression (neutral, happy, sad, angry), eyes (wearing sunglasses or not), and size, 32 images for each person.      
 Background: .PGM format specification  
 http://netpbm.sourceforge.net/doc/pgm.html
+
+Download: [compressed tar file of all the images](http://www.cs.cmu.edu/afs/cs.cmu.edu/project/theo-8/faceimages/faces.tar.Z)
 ```
 wget --recursive --no-parent http://www.cs.cmu.edu/afs/cs.cmu.edu/project/theo-8/faceimages/faces/
 find . -type f -name 'index.html*' -delete
