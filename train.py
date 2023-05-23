@@ -99,5 +99,4 @@ def run_all_single_tasks():
     train_evaluate(task="eyes", dim_out=2)
 
 if __name__ == '__main__':
-    draw_model()
     run_all_single_tasks()        
