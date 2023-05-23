@@ -8,7 +8,8 @@ from sklearn.model_selection import train_test_split
 import numpy as np
 from data_util import *
 from util import device
- 
+from torchview import draw_graph
+
 class NueralNet(nn.Module):
     def __init__(self, dim_out=4):
         super(NueralNet, self).__init__()
@@ -80,15 +81,23 @@ def train_evaluate(task="pose", dim_out=4):
         test_accuracy = correctness/len(test_dataset)
         print("test accuracy: ", test_accuracy)
 
+def draw_model():
+    model_graph = draw_graph(NueralNet(dim_out=4), input_size=(8, 3, 30,32), expand_nested=True)
+    model_graph.visual_graph
+
+def run_all_single_tasks():
+    print("------------------------------------------------")
+    print("-----------   pose task    -----------------------")
+    train_evaluate(task="pose", dim_out=4)
+
+    print("------------------------------------------------")
+    print("-----------   expression task    -----------------------")
+    train_evaluate(task="expression", dim_out=4)
+
+    print("------------------------------------------------")
+    print("-----------   eyes task    -----------------------")
+    train_evaluate(task="eyes", dim_out=2)
+
 if __name__ == '__main__':
-	print("------------------------------------------------")
-	print("-----------   pose task    -----------------------")
-	train_evaluate(task="pose", dim_out=4)
-
-	print("------------------------------------------------")
-	print("-----------   expression task    -----------------------")
-	train_evaluate(task="expression", dim_out=4)
-
-	print("------------------------------------------------")
-	print("-----------   eyes task    -----------------------")
-	train_evaluate(task="eyes", dim_out=2)
+    draw_model()
+    run_all_single_tasks()        
