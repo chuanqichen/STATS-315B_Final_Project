@@ -1,0 +1,26 @@
+train.py
+------------------------------------------------
+-----------   pose task    -----------------------
+test accuracy:  0.9759615384615384
+------------------------------------------------
+-----------   expression task    -----------------------
+test accuracy:  0.16826923076923078
+------------------------------------------------
+-----------   eyes task    -----------------------
+test accuracy:  0.9278846153846154
+
+baseline.py
+-----------   pose task    -----------------------
+Accuracy of Gaussian Naive Bayes:  0.6490384615384616
+Accuracy of Decision Tree Classifier:  0.8221153846153846
+Accuracy of Support Vector Machine:  0.9471153846153846
+------------------------------------------------
+-----------   expression task    -----------------------
+Accuracy of Gaussian Naive Bayes:  0.16826923076923078
+Accuracy of Decision Tree Classifier:  0.1346153846153846
+Accuracy of Support Vector Machine:  0.1875
+------------------------------------------------
+-----------   eyes task    -----------------------
+Accuracy of Gaussian Naive Bayes:  0.6009615384615384
+Accuracy of Decision Tree Classifier:  0.7259615384615384
+Accuracy of Support Vector Machine:  0.9038461538461539
