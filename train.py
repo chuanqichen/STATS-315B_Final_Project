@@ -44,6 +44,7 @@ class NueralNet(nn.Module):
             nn.MaxPool2d(kernel_size=2, stride=2),
             nn.Flatten(),
             nn.Linear(128*15*16*size_scale, 256),
+            nn.ReLU(), 
             nn.Dropout(0.25),
             nn.Linear(256, dim_out)
         )
@@ -187,7 +188,7 @@ def run_all_single_tasks(tasks):
         print("-----------   expression task    -----------------------")
         #train_evaluate(task="expression", dim_out=4, useDeepNN=False, downsample=downsample, batch_size=16, lr=0.5, n_epochs=200)
         train_evaluate(task="expression", dim_out=4, useDeepNN=False, useFER=False,
-                       downsample=downsample, batch_size=16, lr=0.001, n_epochs=50)
+                       downsample=downsample, batch_size=16, lr=0.01, n_epochs=200)
 
     if 2 in tasks:
         print("------------------------------------------------")
