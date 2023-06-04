@@ -4,7 +4,11 @@
 The goal of this task is to learn how to recognize faces. We have a set of pictures of 20 people in various directions and expressions, some of which have sunglasses. One major problem with image data is that our input features are individual pixels, which are high-dimensional but not terribly meaningful in isolation. Using PCA, we can decompose our images into eigenvectors, which are linear combinations of pixels (nicknamed “eigenfaces”). Students can explore different classification tasks, from determining the presence of sunglasses to identifying individuals.
 
 ## Dataset
-Data: Faces Directory   
+* FER-2013 The Facial Expression Recognition 2013 (FER-2013) Dataset
+ 
+  Download: [kaggle](https://www.kaggle.com/competitions/challenges-in-representation-learning-facial-expression-recognition-challenge)
+
+* Data: Faces Directory   
 Summary: This data consists of 640 black and white face images of 20 people taken with varying pose (straight, left, right, up), expression (neutral, happy, sad, angry), eyes (wearing sunglasses or not), and size, 32 images for each person.      
 Background: .PGM format specification  
 http://netpbm.sourceforge.net/doc/pgm.html
