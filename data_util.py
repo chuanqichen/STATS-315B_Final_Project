@@ -31,19 +31,20 @@ def dataset_pose_task_loader(folder, fileslist):
     return file_targets
 
 # neutral, happy, sad, angry
-#0=Angry, 3=Happy, 4=Sad, 6=Neutral
+#0=Angry, 3=Happy, 4=Sad, 6=Neutral in FER dataset 
+# class_to_idx: {'angry': 0, 'happy': 1, 'neutral': 2, 'sad': 3}
 def dataset_expression_task_loader(folder, fileslist):
     full_path_file_list = os.path.join(folder, fileslist)
     file_targets = []
     with open(full_path_file_list, 'r') as file:
         for line in file.readlines():
             line = line.strip('\n')[1:]
-            if "neutral" in line:
-                target = 6 
-            elif "sad" in line:
-                target = 4 
-            elif "happy" in line:
+            if "sad" in line:
                 target = 3 
+            elif "neutral" in line:
+                target = 2 
+            elif "happy" in line:
+                target = 1 
             else:  #"angry"
                 target = 0 
 
@@ -99,7 +100,7 @@ def getFERDataset():
                     transforms.ToTensor(),transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
     total_dataset = datasets.ImageFolder(FER_root_dir, transform)
 
-    train_size = int(0.8 * len(total_dataset))
+    train_size = int(0.2 * len(total_dataset))
     test_size = len(total_dataset) - train_size
     FER_train_dataset, FER_test_dataset = torch.utils.data.random_split(total_dataset, [train_size, test_size])
 
@@ -107,6 +108,8 @@ def getFERDataset():
     FER_test_dataloader = torch.utils.data.DataLoader(FER_test_dataset, batch_size=10, shuffle=True, num_workers=4)
 
     class_names = total_dataset.classes
+    print(class_names)
+    print(total_dataset.class_to_idx)
     num_classes = len(class_names)
     return FER_train_dataset, FER_test_dataset
 

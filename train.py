@@ -5,6 +5,7 @@ from torchvision.transforms import ToTensor, Lambda
 from torch.utils.data import TensorDataset, ConcatDataset, DataLoader
 import torch.nn as nn
 import torch.optim as optim
+from torch.optim import lr_scheduler
 from sklearn.model_selection import train_test_split
 import numpy as np
 from data_util import *
@@ -55,8 +56,8 @@ def validate(model, val_loader):
             y_batch = y_batch.to(device)
             y_pred = model(X_batch)        
             outputs = torch.argmax(y_pred, dim=1)
-            correct += int(torch.mean(outputs==y_batch).itm())
-        return correct/len(val_loader)
+            correct += torch.mean((outputs==y_batch).float())
+    return correct.item()/len(val_loader)
 
 def train_evaluate(task="pose", dim_out=4, useDeepNN=False, downsample=4, batch_size=8, lr=0.08, n_epochs = 50):
         if task == "pose":    
@@ -115,10 +116,11 @@ def train_evaluate(task="pose", dim_out=4, useDeepNN=False, downsample=4, batch_
                 acc += torch.mean((outputs==y_batch).float()).item()
                 loss.backward()
                 optimizer.step()
-            if epoch %2 ==0:
-                 print("epoch: ", epoch, "\t loss: ", loss.item())
+            if epoch %10 ==0:
                  train_loss.append(loss.item())
                  train_acc.append(acc/len(train_dataloader))
+                 val_accuracy = validate(model, val_dataloader)
+                 print("epoch: ", epoch, "\t train loss: ", loss.item(), "\t acc: ", train_acc[-1], "\t val acc: ", val_accuracy)
         plt.plot(train_loss)
         plt.savefig("train_loss.png")
         plt.plot(train_acc)
@@ -155,7 +157,7 @@ def run_all_single_tasks(tasks):
         print("------------------------------------------------")
         print("-----------   expression task    -----------------------")
         #train_evaluate(task="expression", dim_out=4, useDeepNN=False, downsample=downsample, batch_size=16, lr=0.5, n_epochs=200)
-        train_evaluate(task="expression", dim_out=4, useDeepNN=True, downsample=downsample, batch_size=16, lr=0.001, n_epochs=200)
+        train_evaluate(task="expression", dim_out=4, useDeepNN=True, downsample=downsample, batch_size=16, lr=0.001, n_epochs=50)
 
     if 2 in tasks:
         print("------------------------------------------------")
