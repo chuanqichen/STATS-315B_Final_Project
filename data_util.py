@@ -93,6 +93,8 @@ def imshow(img):
     npimg = img.numpy()
     plt.imshow(np.transpose(npimg, (1, 2, 0)))
 
+# FER-2013 The Facial Expression Recognition 2013 (FER-2013) Dataset
+# https://www.kaggle.com/competitions/challenges-in-representation-learning-facial-expression-recognition-challenge
 def getFERDataset():
      # Creating the train/test dataloaders from images
     FER_root_dir = './data/FER-2013/images'

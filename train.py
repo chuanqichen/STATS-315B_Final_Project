@@ -80,16 +80,16 @@ def train_evaluate(task="pose", dim_out=4, useDeepNN=False, downsample=4, batch_
             
         # set up DataLoader for training set
         train_dataset = ImageTargetDataset("./data/", "trainset/all_train.list_"+str(downsample), task_reader=task_reader, transform=transform)
-        train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+        train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
         val_dataset = ImageTargetDataset("./data/", "trainset/all_test1.list_"+str(downsample), task_reader=task_reader, transform=transform)
-        val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size, shuffle=True)
+        val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
         test_dataset = ImageTargetDataset("./data/", "trainset/all_test2.list_"+str(downsample), task_reader=task_reader, transform=transform)
-        test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
+        test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
         
         FER_train_dataset, FER_test_dataset = getFERDataset()
         #train_val_dataset = ConcatDataset([train_dataset, val_dataset])
         train_val_dataset = ConcatDataset([train_dataset, FER_train_dataset, val_dataset])
-        train_dataloader = torch.utils.data.DataLoader(train_val_dataset, batch_size=batch_size, shuffle=True)
+        train_dataloader = torch.utils.data.DataLoader(train_val_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
         #test_dataloader = torch.utils.data.DataLoader(FER_test_dataset, batch_size=batch_size, shuffle=True)
 
         # Train the model
@@ -101,6 +101,7 @@ def train_evaluate(task="pose", dim_out=4, useDeepNN=False, downsample=4, batch_
 
         model.to(device)
         optimizer = optim.SGD(model.parameters(), lr=lr)
+        exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=50, gamma=0.15)
         model.train()
         train_loss = []
         train_acc = []
@@ -121,6 +122,7 @@ def train_evaluate(task="pose", dim_out=4, useDeepNN=False, downsample=4, batch_
                  train_acc.append(acc/len(train_dataloader))
                  val_accuracy = validate(model, val_dataloader)
                  print("epoch: ", epoch, "\t train loss: ", loss.item(), "\t acc: ", train_acc[-1], "\t val acc: ", val_accuracy)
+            exp_lr_scheduler.step()
         plt.plot(train_loss)
         plt.savefig("train_loss.png")
         plt.plot(train_acc)
