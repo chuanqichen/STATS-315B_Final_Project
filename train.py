@@ -11,7 +11,7 @@ import numpy as np
 from data_util import *
 from util import device
 from torchview import draw_graph
-import time, os, fnmatch, shutil
+import time, os, fnmatch, shutil, copy
 
 class DeepNN(nn.Module):
     def __init__(self, dim_out=4, downsample=4):
@@ -126,10 +126,10 @@ def train_evaluate(task="pose", dim_out=4, useDeepNN=False, downsample=4, batch_
                  print("epoch: ", epoch, "\t train loss: ", loss.item(), "\t acc: ", train_acc[-1], "\t val acc: ", val_accuracy)
                  if val_accuracy > best_acc:
                      best_acc = val_accuracy
-                     best_model = torch.clone(model)
+                     best_model = copy.deepcopy(model)
 
             exp_lr_scheduler.step()
-            
+
         plt.plot(train_loss)
         plt.savefig("train_loss.png")
         plt.plot(train_acc)
