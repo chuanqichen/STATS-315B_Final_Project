@@ -90,8 +90,8 @@ def train_evaluate(task="pose", dim_out=4, useDeepNN=False, downsample=4, batch_
         
         FER_train_dataset, FER_test_dataset = getFERDataset()
         #train_val_dataset = ConcatDataset([train_dataset, val_dataset])
-        train_val_dataset = ConcatDataset([train_dataset, FER_train_dataset, val_dataset])
-        train_dataloader = torch.utils.data.DataLoader(train_val_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
+        train_combined_dataset = ConcatDataset([train_dataset, FER_train_dataset])
+        train_dataloader = torch.utils.data.DataLoader(train_combined_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
         #test_dataloader = torch.utils.data.DataLoader(FER_test_dataset, batch_size=batch_size, shuffle=True)
 
         # Train the model
