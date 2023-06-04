@@ -9,6 +9,8 @@ import os
 import cv2
 import matplotlib.pyplot as plt
 from util import device
+import warnings
+warnings.filterwarnings("ignore")
 
 # pose: straight,left, right, up
 def dataset_pose_task_loader(folder, fileslist):

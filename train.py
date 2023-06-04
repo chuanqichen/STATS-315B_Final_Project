@@ -12,6 +12,8 @@ from data_util import *
 from util import device
 from torchview import draw_graph
 import time, os, fnmatch, shutil, copy
+import warnings
+warnings.filterwarnings("ignore")
 
 class DeepNN(nn.Module):
     def __init__(self, dim_out=4, downsample=4):
