@@ -23,6 +23,7 @@ class DeepNN(nn.Module):
         pretrain_model.fc = nn.Linear(num_features, 20)
 
         size_scale = int(4/downsample)**2
+
         self.model = nn.Sequential(
             pretrain_model,
             nn.ReLU(), 
@@ -61,7 +62,7 @@ def validate(model, val_loader):
             correct += torch.mean((outputs==y_batch).float())
     return correct.item()/len(val_loader)
 
-def train_evaluate(task="pose", dim_out=4, useDeepNN=False, downsample=4, batch_size=8, lr=0.08, n_epochs = 50):
+def train_evaluate(task="pose", dim_out=4, useDeepNN=False, useFER=False, downsample=4, batch_size=8, lr=0.08, n_epochs = 50):
         if task == "pose":    
             task_reader=dataset_pose_task_loader
         elif task == "expression":
@@ -88,11 +89,10 @@ def train_evaluate(task="pose", dim_out=4, useDeepNN=False, downsample=4, batch_
         test_dataset = ImageTargetDataset("./data/", "trainset/all_test2.list_"+str(downsample), task_reader=task_reader, transform=transform)
         test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
         
-        FER_train_dataset, FER_test_dataset = getFERDataset()
-        #train_val_dataset = ConcatDataset([train_dataset, val_dataset])
-        train_combined_dataset = ConcatDataset([train_dataset, FER_train_dataset])
-        train_dataloader = torch.utils.data.DataLoader(train_combined_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
-        #test_dataloader = torch.utils.data.DataLoader(FER_test_dataset, batch_size=batch_size, shuffle=True)
+        if useFER:
+            FER_train_dataset, FER_test_dataset = getFERDataset()
+            train_combined_dataset = ConcatDataset([train_dataset, FER_train_dataset])
+            train_dataloader = torch.utils.data.DataLoader(train_combined_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
 
         # Train the model
         loss_fn = nn.CrossEntropyLoss()
@@ -129,7 +129,6 @@ def train_evaluate(task="pose", dim_out=4, useDeepNN=False, downsample=4, batch_
                  if val_accuracy > best_acc:
                      best_acc = val_accuracy
                      best_model = copy.deepcopy(model)
-
             exp_lr_scheduler.step()
 
         plt.plot(train_loss)
@@ -139,7 +138,7 @@ def train_evaluate(task="pose", dim_out=4, useDeepNN=False, downsample=4, batch_
 
         t = time.localtime()
         timestamp = time.strftime('%b-%d-%Y_%H%M', t)
-        model_file_name = ("./models/model_" + timestamp)
+        model_file_name = ("./models/best_model_" + timestamp)
         torch.save(best_model.state_dict(), model_file_name)
         torch.save(best_model, model_file_name + '.pt')
 
@@ -168,7 +167,7 @@ def run_all_single_tasks(tasks):
         print("------------------------------------------------")
         print("-----------   expression task    -----------------------")
         #train_evaluate(task="expression", dim_out=4, useDeepNN=False, downsample=downsample, batch_size=16, lr=0.5, n_epochs=200)
-        train_evaluate(task="expression", dim_out=4, useDeepNN=True, 
+        train_evaluate(task="expression", dim_out=4, useDeepNN=False, useFER=False,
                        downsample=downsample, batch_size=16, lr=0.001, n_epochs=100)
 
     if 2 in tasks:
