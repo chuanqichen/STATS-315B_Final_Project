@@ -39,6 +39,24 @@ class NueralNet(nn.Module):
         super(NueralNet, self).__init__()
         size_scale = int(4/downsample)**2
         self.model = nn.Sequential(
+            nn.Conv2d(in_channels=3, out_channels=128, kernel_size=3, padding=1),
+            nn.ReLU(), 
+            nn.MaxPool2d(kernel_size=2, stride=2),
+            nn.Flatten(),
+            nn.Linear(128*15*16*size_scale, 256),
+            nn.Dropout(0.25),
+            nn.Linear(256, dim_out)
+        )
+
+    def forward(self, x):
+        x = self.model(x)
+        return x
+
+class NueralNet0(nn.Module):
+    def __init__(self, dim_out=4, downsample=4):
+        super(NueralNet, self).__init__()
+        size_scale = int(4/downsample)**2
+        self.model = nn.Sequential(
             nn.Conv2d(in_channels=3, out_channels=25, kernel_size=3, padding=1),
             nn.Dropout(),
             nn.ReLU(), 
@@ -50,7 +68,8 @@ class NueralNet(nn.Module):
     def forward(self, x):
         x = self.model(x)
         return x
- 
+
+
 def validate(model, val_loader):
     correct = 0
     with torch.no_grad():
@@ -83,11 +102,11 @@ def train_evaluate(task="pose", dim_out=4, useDeepNN=False, useFER=False, downsa
             
         # set up DataLoader for training set
         train_dataset = ImageTargetDataset("./data/", "trainset/all_train.list_"+str(downsample), task_reader=task_reader, transform=transform)
-        train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
+        train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=1)
         val_dataset = ImageTargetDataset("./data/", "trainset/all_test1.list_"+str(downsample), task_reader=task_reader, transform=transform)
-        val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
+        val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size, shuffle=True, num_workers=1)
         test_dataset = ImageTargetDataset("./data/", "trainset/all_test2.list_"+str(downsample), task_reader=task_reader, transform=transform)
-        test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
+        test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True, num_workers=1)
         
         if useFER:
             FER_train_dataset, FER_test_dataset = getFERDataset()
@@ -157,7 +176,7 @@ def show_image_grids():
     imshow(torchvision.utils.make_grid(train_features.permute(0, 3, 1, 2), nrow=2))
 
 def run_all_single_tasks(tasks):
-    downsample = 4
+    downsample = 1
     if 0 in tasks:
         print("------------------------------------------------")
         print("-----------   pose task    -----------------------")
@@ -168,7 +187,7 @@ def run_all_single_tasks(tasks):
         print("-----------   expression task    -----------------------")
         #train_evaluate(task="expression", dim_out=4, useDeepNN=False, downsample=downsample, batch_size=16, lr=0.5, n_epochs=200)
         train_evaluate(task="expression", dim_out=4, useDeepNN=False, useFER=False,
-                       downsample=downsample, batch_size=16, lr=0.001, n_epochs=100)
+                       downsample=downsample, batch_size=16, lr=0.001, n_epochs=50)
 
     if 2 in tasks:
         print("------------------------------------------------")
