@@ -2,6 +2,9 @@ import numpy as np
 import torch.utils.data as data
 import torch
 import torchvision
+from torchvision import transforms, models, datasets
+from torchvision.transforms import ToTensor, Lambda
+from torch.utils.data import TensorDataset, ConcatDataset, DataLoader
 import os
 import cv2
 import matplotlib.pyplot as plt
@@ -28,6 +31,7 @@ def dataset_pose_task_loader(folder, fileslist):
     return file_targets
 
 # neutral, happy, sad, angry
+#0=Angry, 3=Happy, 4=Sad, 6=Neutral
 def dataset_expression_task_loader(folder, fileslist):
     full_path_file_list = os.path.join(folder, fileslist)
     file_targets = []
@@ -35,13 +39,13 @@ def dataset_expression_task_loader(folder, fileslist):
         for line in file.readlines():
             line = line.strip('\n')[1:]
             if "neutral" in line:
-                target = 0 
-            elif "happy" in line:
-                target = 1 
+                target = 6 
             elif "sad" in line:
-                target = 2 
-            else:  #"angry"
+                target = 4 
+            elif "happy" in line:
                 target = 3 
+            else:  #"angry"
+                target = 0 
 
             face_image_file = os.path.join(folder, line)
             file_targets.append( (face_image_file, target) )				
@@ -78,7 +82,8 @@ class ImageTargetDataset(data.Dataset):
 			image = self.transform(image)
 		if self.target_transform is not None:
 			target = self.target_transform(target)
-		return np.array(image), target
+        
+		return image, target
 
 	def __len__(self):
 		return len(self.file_targets)
@@ -87,17 +92,47 @@ def imshow(img):
     npimg = img.numpy()
     plt.imshow(np.transpose(npimg, (1, 2, 0)))
 
-if __name__ == '__main__':
-      dataset = ImageTargetDataset("./data/", "trainset/straighteven_train.list")
-      train_dataloader = torch.utils.data.DataLoader(dataset, batch_size=8, shuffle=True)
+def getFERDataset():
+     # Creating the train/test dataloaders from images
+    FER_root_dir = './data/FER-2013/images'
+    transform = transforms.Compose([transforms.RandomResizedCrop(224),transforms.RandomHorizontalFlip(),
+                    transforms.ToTensor(),transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
+    total_dataset = datasets.ImageFolder(FER_root_dir, transform)
+
+    train_size = int(0.8 * len(total_dataset))
+    test_size = len(total_dataset) - train_size
+    FER_train_dataset, FER_test_dataset = torch.utils.data.random_split(total_dataset, [train_size, test_size])
+
+    FER_train_dataloader = torch.utils.data.DataLoader(FER_train_dataset, batch_size=10, shuffle=True, num_workers=4)
+    FER_test_dataloader = torch.utils.data.DataLoader(FER_test_dataset, batch_size=10, shuffle=True, num_workers=4)
+
+    class_names = total_dataset.classes
+    num_classes = len(class_names)
+    return FER_train_dataset, FER_test_dataset
+
+if __name__ == '__main__':      
+      train_dataset = ImageTargetDataset("./data/", "trainset/straighteven_train.list")
+      train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=8, shuffle=True)
       train_features, train_labels = next(iter(train_dataloader))
       print(f"Feature batch shape: {train_features.size()}")
       print(f"Labels batch shape: {train_labels.size()}")
       img = train_features[0].squeeze()
       label = train_labels[0]
-      plt.imshow(img)
+      #plt.imshow(img)
       plt.title = label 
       plt.show()
       print(f"Label: {label}")
-      imshow(torchvision.utils.make_grid(train_features.permute(0, 3, 1, 2), nrow=2))
+      #imshow(torchvision.utils.make_grid(train_features.permute(0, 3, 1, 2), nrow=2))
       print(f"Label: {label}")
+
+      FER_train_dataset, FER_test_dataset = getFERDataset()
+      train_val_dataset = ConcatDataset([train_dataset, FER_train_dataset])
+      train_dataloader = torch.utils.data.DataLoader(train_val_dataset, batch_size=8, shuffle=True)
+      train_features, train_labels = next(iter(train_dataloader))
+      print(f"Feature batch shape: {train_features.size()}")
+      print(f"Labels batch shape: {train_labels.size()}")
+      img = train_features[0].squeeze()
+      label = train_labels[0]
+      plt.imshow(img.moveaxis(0, -1))
+      plt.show()
+      plt.title = label 
