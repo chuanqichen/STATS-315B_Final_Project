@@ -102,7 +102,7 @@ def getFERDataset():
                     transforms.ToTensor(),transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
     total_dataset = datasets.ImageFolder(FER_root_dir, transform)
 
-    train_size = int(0.2 * len(total_dataset))
+    train_size = int(0.8 * len(total_dataset))
     test_size = len(total_dataset) - train_size
     FER_train_dataset, FER_test_dataset = torch.utils.data.random_split(total_dataset, [train_size, test_size])
 
