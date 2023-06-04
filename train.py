@@ -36,7 +36,7 @@ def validate(model, val_loader):
         correct += int(torch.sum(outputs==y_batch))
     return correct
 
-def train_evaluate(task="pose", dim_out=4):
+def train_evaluate(task="pose", dim_out=4, downsample=4, n_epochs = 50):
         if task == "pose":    
             task_reader=dataset_pose_task_loader
         elif task == "expression":
@@ -45,18 +45,17 @@ def train_evaluate(task="pose", dim_out=4):
             task_reader=dataset_eyes_task_loader
 
         # set up DataLoader for training set
-        train_dataset = ImageTargetDataset("./data/", "trainset/all_train.list", task_reader=task_reader, transform=ToTensor())
+        train_dataset = ImageTargetDataset("./data/", "trainset/all_train.list_"+str(downsample), task_reader=task_reader, transform=ToTensor())
         train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=8, shuffle=True)
-        val_dataset = ImageTargetDataset("./data/", "trainset/all_test1.list", task_reader=task_reader, transform=ToTensor())
+        val_dataset = ImageTargetDataset("./data/", "trainset/all_test1.list_"+str(downsample), task_reader=task_reader, transform=ToTensor())
         val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=8, shuffle=True)
-        test_dataset = ImageTargetDataset("./data/", "trainset/all_test2.list", task_reader=task_reader, transform=ToTensor())
+        test_dataset = ImageTargetDataset("./data/", "trainset/all_test2.list_"+str(downsample), task_reader=task_reader, transform=ToTensor())
         test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=8, shuffle=True)
         
         train_val_dataset = ConcatDataset([train_dataset, val_dataset])
         train_dataloader = torch.utils.data.DataLoader(train_val_dataset, batch_size=8, shuffle=True)
 
         # Train the model
-        n_epochs = 50
         loss_fn = nn.CrossEntropyLoss()
         model = NueralNet(dim_out=dim_out)
         model.to(device)
@@ -85,18 +84,30 @@ def draw_model():
     model_graph = draw_graph(NueralNet(dim_out=4), input_size=(8, 3, 30,32), expand_nested=True)
     model_graph.visual_graph
 
-def run_all_single_tasks():
-    print("------------------------------------------------")
-    print("-----------   pose task    -----------------------")
-    train_evaluate(task="pose", dim_out=4)
+def show_image_grids():
+    task_reader=dataset_pose_task_loader
+    train_dataset = ImageTargetDataset("./data/", "trainset/all_train.list", task_reader=task_reader)
+    train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=4, shuffle=True)
+    train_features, train_labels = next(iter(train_dataloader))
+    imshow(torchvision.utils.make_grid(train_features.permute(0, 3, 1, 2), nrow=2))
 
-    print("------------------------------------------------")
-    print("-----------   expression task    -----------------------")
-    train_evaluate(task="expression", dim_out=4)
+def run_all_single_tasks(tasks):
+    if 0 in tasks:
+        print("------------------------------------------------")
+        print("-----------   pose task    -----------------------")
+        train_evaluate(task="pose", dim_out=4)
 
-    print("------------------------------------------------")
-    print("-----------   eyes task    -----------------------")
-    train_evaluate(task="eyes", dim_out=2)
+    if 1 in tasks:
+        print("------------------------------------------------")
+        print("-----------   expression task    -----------------------")
+        train_evaluate(task="expression", dim_out=4, n_epochs=80)
+
+    if 2 in tasks:
+        print("------------------------------------------------")
+        print("-----------   eyes task    -----------------------")
+        train_evaluate(task="eyes", dim_out=2)
 
 if __name__ == '__main__':
-    run_all_single_tasks()        
+    run_all_single_tasks(tasks=[0, 1, 2])        
+    #run_all_single_tasks(tasks=[1])        
+    #show_image_grids()

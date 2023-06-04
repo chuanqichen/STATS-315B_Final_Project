@@ -5,9 +5,10 @@ from sklearn import datasets
 from sklearn import svm
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.naive_bayes import GaussianNB
+from torchvision.transforms import ToTensor, Lambda
 from data_util import *
 
-def train_evaluate(task="pose"):
+def train_evaluate(task="pose",  downsample=4):
 	if task == "pose":    
 		task_reader=dataset_pose_task_loader
 	elif task == "expression":
@@ -15,19 +16,20 @@ def train_evaluate(task="pose"):
 	elif task == "eyes":
 		task_reader=dataset_eyes_task_loader
 
-	train_dataset = ImageTargetDataset("./data/", "trainset/all_train.list", task_reader=task_reader)
+    # set up DataLoader for training set
+	train_dataset = ImageTargetDataset("./data/", "trainset/all_train.list_"+str(downsample), task_reader=task_reader, transform=ToTensor())
 	train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=len(train_dataset), shuffle=True)
-	test1_dataset = ImageTargetDataset("./data/", "trainset/all_test1.list", task_reader=task_reader)
-	test1_dataloader = torch.utils.data.DataLoader(test1_dataset, batch_size=len(test1_dataset), shuffle=True)
-	test2_dataset = ImageTargetDataset("./data/", "trainset/all_test2.list", task_reader=task_reader)
-	test2_dataloader = torch.utils.data.DataLoader(test2_dataset, batch_size=len(test2_dataset), shuffle=True)
+	val_dataset = ImageTargetDataset("./data/", "trainset/all_test1.list_"+str(downsample), task_reader=task_reader, transform=ToTensor())
+	val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=len(train_dataset), shuffle=True)
+	test_dataset = ImageTargetDataset("./data/", "trainset/all_test2.list_"+str(downsample), task_reader=task_reader, transform=ToTensor())
+	test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=len(train_dataset), shuffle=True)
 
 	X_train, y_train = next(iter(train_dataloader))
-	X_test1, y_test1 = next(iter(test1_dataloader))
+	X_test1, y_test1 = next(iter(val_dataloader))
 	X_train = torch.vstack((X_train, X_test1))
 	y_train = torch.cat((y_train, y_test1))
 
-	X_test, y_test = next(iter(test2_dataloader))
+	X_test, y_test = next(iter(test_dataloader))
 	X_train = X_train.reshape(X_train.shape[0], -1)
 	X_test = X_test.reshape(X_test.shape[0], -1)
 
@@ -63,14 +65,15 @@ def train_evaluate(task="pose"):
 	
 
 if __name__ == '__main__':
+	downsample = 2
 	print("------------------------------------------------")
 	print("-----------   pose task    -----------------------")
-	train_evaluate(task="pose")
+	train_evaluate(task="pose", downsample=downsample)
 
 	print("------------------------------------------------")
 	print("-----------   expression task    -----------------------")
-	train_evaluate(task="expression")
+	train_evaluate(task="expression",  downsample=downsample)
 
 	print("------------------------------------------------")
 	print("-----------   eyes task    -----------------------")
-	train_evaluate(task="eyes")
+	train_evaluate(task="eyes",  downsample=downsample)
