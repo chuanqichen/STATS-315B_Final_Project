@@ -49,13 +49,14 @@ class NueralNet(nn.Module):
  
 def validate(model, val_loader):
     correct = 0
-    for X_batch, y_batch in val_loader:
-        X_batch = X_batch.to(device)
-        y_batch = y_batch.to(device)
-        y_pred = model(X_batch)        
-        outputs = torch.argmax(y_pred, dim=1)
-        correct += int(torch.sum(outputs==y_batch))
-    return correct
+    with torch.no_grad():
+        for X_batch, y_batch in val_loader:
+            X_batch = X_batch.to(device)
+            y_batch = y_batch.to(device)
+            y_pred = model(X_batch)        
+            outputs = torch.argmax(y_pred, dim=1)
+            correct += int(torch.mean(outputs==y_batch).itm())
+        return correct/len(val_loader)
 
 def train_evaluate(task="pose", dim_out=4, useDeepNN=False, downsample=4, batch_size=8, lr=0.08, n_epochs = 50):
         if task == "pose":    
@@ -101,20 +102,27 @@ def train_evaluate(task="pose", dim_out=4, useDeepNN=False, downsample=4, batch_
         optimizer = optim.SGD(model.parameters(), lr=lr)
         model.train()
         train_loss = []
+        train_acc = []
         for epoch in range(n_epochs):
+            acc = 0
             for X_batch, y_batch in train_dataloader:
                 X_batch = X_batch.to(device)
                 y_batch = y_batch.to(device)
+                optimizer.zero_grad()
                 y_pred = model(X_batch)
                 loss = loss_fn(y_pred, y_batch)
-                optimizer.zero_grad()
+                outputs = torch.argmax(y_pred, dim=1)
+                acc += torch.mean((outputs==y_batch).float()).item()
                 loss.backward()
                 optimizer.step()
             if epoch %2 ==0:
                  print("epoch: ", epoch, "\t loss: ", loss.item())
                  train_loss.append(loss.item())
+                 train_acc.append(acc/len(train_dataloader))
         plt.plot(train_loss)
         plt.savefig("train_loss.png")
+        plt.plot(train_acc)
+        plt.savefig("train_acc.png")
 
         t = time.localtime()
         timestamp = time.strftime('%b-%d-%Y_%H%M', t)
@@ -122,8 +130,7 @@ def train_evaluate(task="pose", dim_out=4, useDeepNN=False, downsample=4, batch_
         torch.save(model.state_dict(), model_file_name)
         torch.save(model, model_file_name + '.pt')
 
-        correctness = validate(model, test_dataloader)
-        test_accuracy = correctness/len(test_dataset)
+        test_accuracy = validate(model, test_dataloader)
         print("test accuracy: ", test_accuracy)
 
 def draw_model():
@@ -147,7 +154,8 @@ def run_all_single_tasks(tasks):
     if 1 in tasks:
         print("------------------------------------------------")
         print("-----------   expression task    -----------------------")
-        train_evaluate(task="expression", dim_out=4, useDeepNN=True, downsample=downsample, batch_size=16, lr=0.5, n_epochs=200)
+        #train_evaluate(task="expression", dim_out=4, useDeepNN=False, downsample=downsample, batch_size=16, lr=0.5, n_epochs=200)
+        train_evaluate(task="expression", dim_out=4, useDeepNN=True, downsample=downsample, batch_size=16, lr=0.001, n_epochs=200)
 
     if 2 in tasks:
         print("------------------------------------------------")
