@@ -107,6 +107,7 @@ def getFERDataset():
     train_size = int(0.8 * len(total_dataset))
     test_size = len(total_dataset) - train_size
     FER_train_dataset, FER_test_dataset = torch.utils.data.random_split(total_dataset, [train_size, test_size])
+    FER_val_dataset, FER_test_dataset = torch.utils.data.random_split(FER_test_dataset, [test_size//2, test_size-test_size//2])
 
     FER_train_dataloader = torch.utils.data.DataLoader(FER_train_dataset, batch_size=10, shuffle=True, num_workers=4)
     FER_test_dataloader = torch.utils.data.DataLoader(FER_test_dataset, batch_size=10, shuffle=True, num_workers=4)
@@ -115,7 +116,7 @@ def getFERDataset():
     print(class_names)
     print(total_dataset.class_to_idx)
     num_classes = len(class_names)
-    return FER_train_dataset, FER_test_dataset
+    return FER_train_dataset, FER_val_dataset, FER_test_dataset
 
 if __name__ == '__main__':      
       train_dataset = ImageTargetDataset("./data/", "trainset/straighteven_train.list")

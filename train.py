@@ -110,9 +110,12 @@ def train_evaluate(task="pose", dim_out=4, useDeepNN=False, useFER=False, downsa
         test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True, num_workers=1)
         
         if useFER:
-            FER_train_dataset, FER_test_dataset = getFERDataset()
-            train_combined_dataset = ConcatDataset([train_dataset, FER_train_dataset])
-            train_dataloader = torch.utils.data.DataLoader(train_combined_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
+            FER_train_dataset, FER_val_dataset, FER_test_dataset = getFERDataset()
+            #train_combined_dataset = ConcatDataset([train_dataset, FER_train_dataset])
+            #train_dataloader = torch.utils.data.DataLoader(train_combined_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
+            train_dataloader = torch.utils.data.DataLoader(FER_train_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
+            val_dataloader = torch.utils.data.DataLoader(FER_val_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
+            test_dataloader = torch.utils.data.DataLoader(FER_test_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
 
         # Train the model
         loss_fn = nn.CrossEntropyLoss()
@@ -123,7 +126,7 @@ def train_evaluate(task="pose", dim_out=4, useDeepNN=False, useFER=False, downsa
 
         model.to(device)
         optimizer = optim.SGD(model.parameters(), lr=lr)
-        exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=50, gamma=0.15)
+        exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=25, gamma=0.15)
         model.train()
         train_loss = []
         train_acc = []
@@ -187,8 +190,10 @@ def run_all_single_tasks(tasks):
         print("------------------------------------------------")
         print("-----------   expression task    -----------------------")
         #train_evaluate(task="expression", dim_out=4, useDeepNN=False, downsample=downsample, batch_size=16, lr=0.5, n_epochs=200)
-        train_evaluate(task="expression", dim_out=4, useDeepNN=False, useFER=False,
-                       downsample=downsample, batch_size=16, lr=0.01, n_epochs=200)
+        #train_evaluate(task="expression", dim_out=4, useDeepNN=False, useFER=False,
+        #               downsample=downsample, batch_size=16, lr=0.01, n_epochs=200)
+        train_evaluate(task="expression", dim_out=4, useDeepNN=True, useFER=True,
+                       downsample=downsample, batch_size=16, lr=0.001, n_epochs=100)
 
     if 2 in tasks:
         print("------------------------------------------------")
