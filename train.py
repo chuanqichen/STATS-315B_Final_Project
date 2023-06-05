@@ -40,6 +40,7 @@ class NueralNet(nn.Module):
         size_scale = int(4/downsample)**2
         self.model = nn.Sequential(
             nn.Conv2d(in_channels=3, out_channels=128, kernel_size=3, padding=1),
+            nn.Dropout(0.25),
             nn.ReLU(), 
             nn.MaxPool2d(kernel_size=2, stride=2),
             nn.Flatten(),
@@ -130,6 +131,7 @@ def train_evaluate(task="pose", dim_out=4, useDeepNN=False, useFER=False, downsa
         model.train()
         train_loss = []
         train_acc = []
+        val_acc = []
         best_acc = 0
         for epoch in range(n_epochs):
             acc = 0
@@ -145,19 +147,28 @@ def train_evaluate(task="pose", dim_out=4, useDeepNN=False, useFER=False, downsa
                 optimizer.step()
 
             if epoch %10 ==0:
-                 train_loss.append(loss.item())
-                 train_acc.append(acc/len(train_dataloader))
+                 train_loss.append((epoch, loss.item()))
+                 train_acc.append((epoch, acc/len(train_dataloader)))
                  val_accuracy = validate(model, val_dataloader)
+                 val_acc.append((epoch, val_accuracy))
                  print("epoch: ", epoch, "\t train loss: ", loss.item(), "\t acc: ", train_acc[-1], "\t val acc: ", val_accuracy)
                  if val_accuracy > best_acc:
                      best_acc = val_accuracy
                      best_model = copy.deepcopy(model)
             exp_lr_scheduler.step()
 
-        plt.plot(train_loss)
+        plt.plot(*zip(*train_loss))
+        plt.title("Training loss")
+        plt.xlabel("epoch")
+        plt.ylabel("loss")
         plt.savefig("train_loss.png")
         plt.figure() 
-        plt.plot(train_acc)
+        plt.plot(*zip(train_acc), label="train acc")
+        plt.plot(*zip(val_acc), label='evaluation"')
+        plt.legend(loc="upper right")
+        plt.title("Traing and evaluation Accuracy")
+        plt.xlabel("epoch")
+        plt.ylabel("accuracy")
         plt.savefig("train_acc.png")
 
         t = time.localtime()
@@ -191,10 +202,10 @@ def run_all_single_tasks(tasks):
         print("------------------------------------------------")
         print("-----------   expression task    -----------------------")
         #train_evaluate(task="expression", dim_out=4, useDeepNN=False, downsample=downsample, batch_size=16, lr=0.5, n_epochs=200)
-        #train_evaluate(task="expression", dim_out=4, useDeepNN=False, useFER=False,
-        #               downsample=downsample, batch_size=16, lr=0.01, n_epochs=200)
-        train_evaluate(task="expression", dim_out=4, useDeepNN=True, useFER=True,
-                       downsample=downsample, batch_size=16, lr=0.001, n_epochs=100)
+        train_evaluate(task="expression", dim_out=4, useDeepNN=False, useFER=False,
+                       downsample=downsample, batch_size=16, lr=0.01, n_epochs=200)
+        #train_evaluate(task="expression", dim_out=4, useDeepNN=True, useFER=True,
+        #               downsample=downsample, batch_size=16, lr=0.001, n_epochs=100)
 
     if 2 in tasks:
         print("------------------------------------------------")
