@@ -9,68 +9,12 @@ from torch.optim import lr_scheduler
 from sklearn.model_selection import train_test_split
 import numpy as np
 from data_util import *
+from model import *
 from util import device
 from torchview import draw_graph
 import time, os, fnmatch, shutil, copy
 import warnings
 warnings.filterwarnings("ignore")
-
-class DeepNN(nn.Module):
-    def __init__(self, dim_out=4, downsample=4):
-        super(DeepNN, self).__init__()
-        pretrain_model = models.resnet18(weights=models.resnet.ResNet18_Weights.IMAGENET1K_V1)
-        num_features = pretrain_model.fc.in_features
-        pretrain_model.fc = nn.Linear(num_features, 20)
-
-        size_scale = int(4/downsample)**2
-
-        self.model = nn.Sequential(
-            pretrain_model,
-            nn.ReLU(), 
-             nn.Linear(20, dim_out)
-        )
-
-    def forward(self, x):
-        x = self.model(x)
-        return x
-
-class NueralNet(nn.Module):
-    def __init__(self, dim_out=4, downsample=4):
-        super(NueralNet, self).__init__()
-        size_scale = int(4/downsample)**2
-        self.model = nn.Sequential(
-            nn.Conv2d(in_channels=3, out_channels=128, kernel_size=3, padding=1),
-            nn.Dropout(0.25),
-            nn.ReLU(), 
-            nn.MaxPool2d(kernel_size=2, stride=2),
-            nn.Flatten(),
-            nn.Linear(128*15*16*size_scale, 256),
-            nn.ReLU(), 
-            nn.Dropout(0.25),
-            nn.Linear(256, dim_out)
-        )
-
-    def forward(self, x):
-        x = self.model(x)
-        return x
-
-class NueralNet0(nn.Module):
-    def __init__(self, dim_out=4, downsample=4):
-        super(NueralNet, self).__init__()
-        size_scale = int(4/downsample)**2
-        self.model = nn.Sequential(
-            nn.Conv2d(in_channels=3, out_channels=25, kernel_size=3, padding=1),
-            nn.Dropout(),
-            nn.ReLU(), 
-            nn.MaxPool2d(kernel_size=2, stride=2),
-            nn.Flatten(),
-            nn.Linear(25*15*16*size_scale, dim_out)
-        )
-
-    def forward(self, x):
-        x = self.model(x)
-        return x
-
 
 def validate(model, val_loader):
     correct = 0
@@ -157,14 +101,17 @@ def train_evaluate(task="pose", dim_out=4, useDeepNN=False, useFER=False, downsa
                      best_model = copy.deepcopy(model)
             exp_lr_scheduler.step()
 
-        plt.plot(*zip(*train_loss))
+        x, y = map(list, zip(*train_loss))
+        plt.plot(x, y)
         plt.title("Training loss")
         plt.xlabel("epoch")
         plt.ylabel("loss")
         plt.savefig("train_loss.png")
         plt.figure() 
-        plt.plot(*zip(train_acc), label="train acc")
-        plt.plot(*zip(val_acc), label='evaluation"')
+        x, y = map(list, zip(*train_acc))
+        plt.plot(x, y,  label="train acc")
+        x, y = map(list, zip(*val_acc))
+        plt.plot(x, y, label='val acc"')
         plt.legend(loc="upper right")
         plt.title("Traing and evaluation Accuracy")
         plt.xlabel("epoch")
@@ -202,10 +149,10 @@ def run_all_single_tasks(tasks):
         print("------------------------------------------------")
         print("-----------   expression task    -----------------------")
         #train_evaluate(task="expression", dim_out=4, useDeepNN=False, downsample=downsample, batch_size=16, lr=0.5, n_epochs=200)
-        train_evaluate(task="expression", dim_out=4, useDeepNN=False, useFER=False,
-                       downsample=downsample, batch_size=16, lr=0.01, n_epochs=200)
-        #train_evaluate(task="expression", dim_out=4, useDeepNN=True, useFER=True,
-        #               downsample=downsample, batch_size=16, lr=0.001, n_epochs=100)
+        #train_evaluate(task="expression", dim_out=4, useDeepNN=False, useFER=False,
+        #               downsample=downsample, batch_size=16, lr=0.01, n_epochs=10)
+        train_evaluate(task="expression", dim_out=4, useDeepNN=True, useFER=True,
+                       downsample=downsample, batch_size=32, lr=0.001, n_epochs=200)
 
     if 2 in tasks:
         print("------------------------------------------------")
