@@ -156,6 +156,7 @@ def train_evaluate(task="pose", dim_out=4, useDeepNN=False, useFER=False, downsa
 
         plt.plot(train_loss)
         plt.savefig("train_loss.png")
+        plt.figure() 
         plt.plot(train_acc)
         plt.savefig("train_acc.png")
 
