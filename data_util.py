@@ -97,10 +97,10 @@ def imshow(img):
 
 # FER-2013 The Facial Expression Recognition 2013 (FER-2013) Dataset
 # https://www.kaggle.com/competitions/challenges-in-representation-learning-facial-expression-recognition-challenge
-def getFERDataset():
+def getFERDataset(image_size=224):
      # Creating the train/test dataloaders from images
     FER_root_dir = './data/FER-2013/images'
-    transform = transforms.Compose([transforms.RandomResizedCrop(224),transforms.RandomHorizontalFlip(),
+    transform = transforms.Compose([transforms.RandomResizedCrop(image_size),transforms.RandomHorizontalFlip(),
                     transforms.ToTensor(),transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])])
     total_dataset = datasets.ImageFolder(FER_root_dir, transform)
 

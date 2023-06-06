@@ -30,10 +30,27 @@ class DeepNN0(nn.Module):
         x = self.model(x)
         return x
 
-
 class DeepNN1(nn.Module):
     def __init__(self, dim_out=4, downsample=4):
         super(DeepNN1, self).__init__()
+        pretrain_model = models.resnet50(weights=models.ResNet50_Weights)
+        num_features = pretrain_model.fc.in_features
+        pretrain_model.fc = nn.Linear(num_features, dim_out)
+
+        size_scale = int(4/downsample)**2
+
+        self.model = nn.Sequential(
+            pretrain_model,
+        )
+
+    def forward(self, x):
+        x = self.model(x)
+        return x
+
+
+class DeepNN2(nn.Module):
+    def __init__(self, dim_out=4, downsample=4):
+        super(DeepNN2, self).__init__()
         pretrain_model = models.resnet18(weights=models.resnet.ResNet18_Weights.IMAGENET1K_V1)
         num_features = pretrain_model.fc.in_features
         pretrain_model.fc = nn.Linear(num_features, 512)
@@ -42,14 +59,14 @@ class DeepNN1(nn.Module):
 
         self.model = nn.Sequential(
             pretrain_model,
-            nn.Dropout(0.25),
             nn.ReLU(), 
+            nn.Dropout(0.25),
             nn.Linear(512, 256),
-            nn.Dropout(0.25),
             nn.ReLU(), 
+            nn.Dropout(0.25),
             nn.Linear(256, 128),
-            nn.Dropout(0.25),
             nn.ReLU(), 
+            nn.Dropout(0.25),
             nn.Linear(128, dim_out)
         )
 

@@ -152,7 +152,7 @@ def run_all_single_tasks(tasks):
         #train_evaluate(task="expression", dim_out=4, useDeepNN=False, useFER=False,
         #               downsample=downsample, batch_size=16, lr=0.01, n_epochs=10)
         train_evaluate(task="expression", dim_out=4, useDeepNN=True, useFER=True,
-                       downsample=downsample, batch_size=32, lr=0.001, n_epochs=200)
+                       downsample=downsample, batch_size=16, lr=0.001, n_epochs=100)
 
     if 2 in tasks:
         print("------------------------------------------------")
