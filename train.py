@@ -7,6 +7,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.optim import lr_scheduler
 from sklearn.model_selection import train_test_split
+from scipy.stats import mode
 import numpy as np
 from data_util import *
 from model import *
@@ -16,18 +17,24 @@ import time, os, fnmatch, shutil, copy
 import warnings
 warnings.filterwarnings("ignore")
 
-def validate(model, val_loader):
+def validate(model, val_loader, useNueralNetsEnsemble=False):
     correct = 0
     with torch.no_grad():
         for X_batch, y_batch in val_loader:
             X_batch = X_batch.to(device)
             y_batch = y_batch.to(device)
             y_pred = model(X_batch)        
-            outputs = torch.argmax(y_pred, dim=1)
-            correct += torch.mean((outputs==y_batch).float())
+            if not useNueralNetsEnsemble:               
+                    outputs = torch.argmax(y_pred, dim=1)
+            else:
+                    votes = y_pred.argmax(2)
+                    #outputs = torch.mode(votes, 1)
+                    outputs = torch.Tensor([max(vote, key=vote.tolist().count).item() for vote in votes]).to(device)
+            
+            correct += torch.mean((outputs==y_batch).float())           
     return correct.item()/len(val_loader)
 
-def train_evaluate(task="pose", dim_out=4, useDeepNN=False, useFER=False, downsample=4, batch_size=8, lr=0.08, n_epochs = 50):
+def train_evaluate(task="pose", dim_out=4, useDeepNN=False, useNueralNetsEnsemble=False, useFER=False, downsample=4, batch_size=8, lr=0.08, n_epochs = 50):
         if task == "pose":    
             task_reader=dataset_pose_task_loader
         elif task == "expression":
@@ -37,8 +44,8 @@ def train_evaluate(task="pose", dim_out=4, useDeepNN=False, useFER=False, downsa
 
         if not useDeepNN:
             transform = transforms.Compose(
-                    #[transforms.ToTensor(),transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
-                    [transforms.ToTensor()])
+                    [transforms.ToTensor(), transforms.RandomHorizontalFlip(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+                    #[transforms.ToTensor(), transforms.RandomHorizontalFlip()])
         else:
             transform = transforms.Compose([
                                             transforms.ToTensor(),
@@ -64,8 +71,10 @@ def train_evaluate(task="pose", dim_out=4, useDeepNN=False, useFER=False, downsa
 
         # Train the model
         loss_fn = nn.CrossEntropyLoss()
-        if not useDeepNN:
+        if not useDeepNN and not useNueralNetsEnsemble:
             model = NueralNet(dim_out=dim_out, downsample=downsample)
+        elif  not useDeepNN  and useNueralNetsEnsemble:
+            model = NueralNetsEnsemble(dim_out=dim_out, downsample=downsample)
         else:
             model = DeepNN(dim_out=dim_out, downsample=downsample)
 
@@ -84,8 +93,14 @@ def train_evaluate(task="pose", dim_out=4, useDeepNN=False, useFER=False, downsa
                 y_batch = y_batch.to(device)
                 optimizer.zero_grad()
                 y_pred = model(X_batch)
-                loss = loss_fn(y_pred, y_batch)
-                outputs = torch.argmax(y_pred, dim=1)
+                if not useNueralNetsEnsemble:               
+                    loss = loss_fn(y_pred, y_batch)
+                    outputs = torch.argmax(y_pred, dim=1)
+                else:
+                    loss = sum([loss_fn(y_pred[:, i,:], y_batch) for i in range(y_pred.shape[1])])/y_pred.shape[1]
+                    votes = y_pred.argmax(2)
+                    #outputs = torch.mode(votes, 1)
+                    outputs = torch.Tensor([max(vote, key=vote.tolist().count).item() for vote in votes]).to(device)
                 acc += torch.mean((outputs==y_batch).float()).item()
                 loss.backward()
                 optimizer.step()
@@ -93,7 +108,7 @@ def train_evaluate(task="pose", dim_out=4, useDeepNN=False, useFER=False, downsa
             if epoch %10 ==0:
                  train_loss.append((epoch, loss.item()))
                  train_acc.append((epoch, acc/len(train_dataloader)))
-                 val_accuracy = validate(model, val_dataloader)
+                 val_accuracy = validate(model, val_dataloader,useNueralNetsEnsemble)
                  val_acc.append((epoch, val_accuracy))
                  print("epoch: ", epoch, "\t train loss: ", loss.item(), "\t acc: ", train_acc[-1], "\t val acc: ", val_accuracy)
                  if val_accuracy > best_acc:
@@ -124,7 +139,7 @@ def train_evaluate(task="pose", dim_out=4, useDeepNN=False, useFER=False, downsa
         torch.save(best_model.state_dict(), model_file_name)
         torch.save(best_model, model_file_name + '.pt')
 
-        test_accuracy = validate(best_model, test_dataloader)
+        test_accuracy = validate(best_model, test_dataloader,useNueralNetsEnsemble)
         print("test accuracy: ", test_accuracy)
 
 def draw_model():
@@ -151,9 +166,11 @@ def run_all_single_tasks(tasks):
         #train_evaluate(task="expression", dim_out=4, useDeepNN=False, downsample=downsample, batch_size=16, lr=0.5, n_epochs=200)
         #train_evaluate(task="expression", dim_out=4, useDeepNN=False, useFER=False,
         #               downsample=downsample, batch_size=16, lr=0.01, n_epochs=10)
-        train_evaluate(task="expression", dim_out=4, useDeepNN=True, useFER=True,
-                       downsample=downsample, batch_size=16, lr=0.001, n_epochs=100)
-
+        #train_evaluate(task="expression", dim_out=4, useDeepNN=True, useFER=True,
+        #               downsample=downsample, batch_size=16, lr=0.001, n_epochs=100)
+        train_evaluate(task="expression", dim_out=4, useDeepNN=False, useNueralNetsEnsemble=True, useFER=False,
+                       downsample=downsample, batch_size=16, lr=0.01, n_epochs=200)
+ 
     if 2 in tasks:
         print("------------------------------------------------")
         print("-----------   eyes task    -----------------------")

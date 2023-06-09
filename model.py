@@ -76,6 +76,44 @@ class DeepNN2(nn.Module):
 
 DeepNN = DeepNN1
 
+class NueralNetsEnsemble(nn.Module):
+    def __init__(self, dim_out=4, downsample=4):
+        super(NueralNetsEnsemble, self).__init__()
+        size_scale = int(4/downsample)**2
+        self.model =  nn.ModuleList()
+        for _ in range(4):
+            self.model.append( nn.Sequential(
+                nn.Conv2d(in_channels=3, out_channels=128, kernel_size=3, padding=1),
+                nn.Dropout(0.50),
+                nn.ReLU(), 
+                nn.MaxPool2d(kernel_size=2, stride=2),
+                nn.Flatten(),
+                nn.Linear(128*15*16*size_scale, 256),
+                nn.ReLU(), 
+                nn.Dropout(0.25),
+                nn.Linear(256, dim_out)
+            ))
+        for _ in range(3):
+            self.model.append( nn.Sequential(
+                nn.Conv2d(in_channels=3, out_channels=64, kernel_size=5, padding=2),
+                nn.Dropout(0.25),
+                nn.ReLU(), 
+                nn.MaxPool2d(kernel_size=2, stride=2),
+                nn.Flatten(),
+                nn.Linear(64*15*16*size_scale, 128),
+                nn.ReLU(), 
+                nn.Dropout(0.25),
+                nn.Linear(128, dim_out)
+            ))            
+
+    def forward(self, x):
+        outputs = []
+        for model in self.model:
+            outputs.append(model(x))
+        outputs = torch.stack(outputs)
+        return outputs.swapaxes(0, 1)
+
+
 class NueralNet(nn.Module):
     def __init__(self, dim_out=4, downsample=4):
         super(NueralNet, self).__init__()
