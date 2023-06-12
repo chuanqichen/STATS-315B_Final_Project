@@ -74,14 +74,14 @@ class DeepNN2(nn.Module):
         x = self.model(x)
         return x
 
-DeepNN = DeepNN1
+DeepNN = DeepNN0
 
 class NueralNetsEnsemble(nn.Module):
     def __init__(self, dim_out=4, downsample=4):
         super(NueralNetsEnsemble, self).__init__()
         size_scale = int(4/downsample)**2
         self.model =  nn.ModuleList()
-        for _ in range(4):
+        for _ in range(2):
             self.model.append( nn.Sequential(
                 nn.Conv2d(in_channels=3, out_channels=128, kernel_size=3, padding=1),
                 nn.Dropout(0.50),
@@ -93,7 +93,7 @@ class NueralNetsEnsemble(nn.Module):
                 nn.Dropout(0.25),
                 nn.Linear(256, dim_out)
             ))
-        for _ in range(3):
+        for _ in range(1):
             self.model.append( nn.Sequential(
                 nn.Conv2d(in_channels=3, out_channels=64, kernel_size=5, padding=2),
                 nn.Dropout(0.25),

@@ -158,7 +158,12 @@ def run_all_single_tasks(tasks):
     if 0 in tasks:
         print("------------------------------------------------")
         print("-----------   pose task    -----------------------")
-        train_evaluate(task="pose", dim_out=4, downsample=downsample)
+        #train_evaluate(task="pose", dim_out=4, downsample=downsample)
+        #train_evaluate(task="pose", dim_out=4, useDeepNN=True, useFER=False,
+        #               downsample=downsample, batch_size=16, lr=0.001, n_epochs=100)
+        train_evaluate(task="pose", dim_out=4, useDeepNN=False, useNueralNetsEnsemble=True, useFER=False,
+                       downsample=downsample, batch_size=16, lr=0.01, n_epochs=200)
+
 
     if 1 in tasks:
         print("------------------------------------------------")
@@ -174,9 +179,13 @@ def run_all_single_tasks(tasks):
     if 2 in tasks:
         print("------------------------------------------------")
         print("-----------   eyes task    -----------------------")
-        train_evaluate(task="eyes", dim_out=2, downsample=downsample)
+        #train_evaluate(task="eyes", dim_out=2, downsample=downsample)
+        #train_evaluate(task="eyes", dim_out=4, useDeepNN=True, useFER=False,
+        #        downsample=downsample, batch_size=16, lr=0.001, n_epochs=100)
+        train_evaluate(task="eyes", dim_out=4, useDeepNN=False, useNueralNetsEnsemble=True, useFER=False,
+                       downsample=downsample, batch_size=16, lr=0.01, n_epochs=200)
 
 if __name__ == '__main__':
-    run_all_single_tasks(tasks=[1])        
+    run_all_single_tasks(tasks=[2])        
     #run_all_single_tasks(tasks=[1])        
     #show_image_grids()
